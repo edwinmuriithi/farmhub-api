@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class UserModel {
 
     @Id
@@ -24,5 +25,4 @@ public class UserModel {
 
     private String password;
 
-    private
 }
