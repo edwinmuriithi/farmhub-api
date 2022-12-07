@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String    @id @default(uuid())
+  names               String
+  role                ROLE
+  email               String    @unique
+  phone               String?   @unique
+  password            String
+  salt                String
+  data                Json      @default("{ \"newUser\": true }")
+  resetToken          String?
+  resetTokenExpiresAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  verified            Boolean   @default(false)
+  facility            Facility? @relation(fields: [facilityKmhflCode], references: [kmhflCode])
+  facilityKmhflCode   String?
+  disabled            Boolean   @default(false)
+}
+
+model Patient {
+  id           String    @id @default(uuid())
+  phone        String    @unique
+  patientId    String    @unique
+  idNumber     String    @unique
+  data         Json      @default("{ \"newUser\": true }")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  names        String
+  password     String?
+  salt         String?
+  otp          String?
+  otpExpiresAt DateTime?
+  verified     Boolean   @default(false)
+}
+
+model Facility {
+  kmhflCode String   @id
+  name      String
+  data      Json     @default("{\"county\":\"\", \"subCounty\":\"\"}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  disabled Boolean @default(false)
+
+  User User[]
+}
+
+model Referral {
+  id        String   @id @default(uuid())
+  phone     String
+  firstName String
+  lastName  String
+  dob       DateTime
+  sex       String   @default("Female")
+  data      Json
+  residence Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ROLE {
+  ADMINISTRATOR
+  FACILITY_ADMINISTRATOR
+  NURSE
+  CHW
+}
