@@ -1,0 +1,49 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: db
+    restart: always
+    env_file:
+      - ./api/.env
+    volumes:
+      - 'db:/var/lib/postgresql/data'
+
+  api:
+    build: .
+    container_name: api
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    links:
+      - postgres
+
+  # web:
+  #   build: ./ui
+  #   container_name: web
+  #   restart: always
+  #   depends_on:
+  #     - mhis-api
+  #   ports:
+  #     - '8082:80'
+  #   env_file:
+  #     - ./ui/.env
+  #   links:
+  #     - mhis-api
+
+  # cloud-messaging:
+  #   build:
+  #     context: cloud-messaging
+  #     dockerfile: Dockerfile
+  #   container_name: cloud-messaging
+  #   restart: always
+  #   ports:
+  #     - '8000:8000'
+    # env_file: ./cloud-messaging/.env
+
+volumes:
+  db:
