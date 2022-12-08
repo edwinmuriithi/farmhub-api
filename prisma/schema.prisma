@@ -24,54 +24,21 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   verified            Boolean   @default(false)
-  facility            Facility? @relation(fields: [facilityKmhflCode], references: [kmhflCode])
-  facilityKmhflCode   String?
   disabled            Boolean   @default(false)
 }
 
-model Patient {
-  id           String    @id @default(uuid())
-  phone        String    @unique
-  patientId    String    @unique
-  idNumber     String    @unique
-  data         Json      @default("{ \"newUser\": true }")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  names        String
-  password     String?
-  salt         String?
-  otp          String?
-  otpExpiresAt DateTime?
-  verified     Boolean   @default(false)
-}
-
-model Facility {
-  kmhflCode String   @id
-  name      String
-  data      Json     @default("{\"county\":\"\", \"subCounty\":\"\"}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  disabled Boolean @default(false)
-
-  User User[]
-}
-
-model Referral {
+model Message {
   id        String   @id @default(uuid())
-  phone     String
-  firstName String
-  lastName  String
-  dob       DateTime
-  sex       String   @default("Female")
-  data      Json
-  residence Json
+  from      String
+  to        String
+  message   String
+  read      Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 enum ROLE {
   ADMINISTRATOR
-  FACILITY_ADMINISTRATOR
-  NURSE
-  CHW
+  SYSTEM_ADMINISTRATOR
+  USER
 }
