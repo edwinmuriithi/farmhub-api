@@ -7,7 +7,6 @@ import { sendPasswordResetEmail, validateEmail, sendWelcomeEmail } from "../lib/
 const router = express.Router()
 router.use(express.json())
 
-
 // Get User Information.
 router.get("/me", [requireJWT], async (req: Request, res: Response) => {
     try {
@@ -26,18 +25,7 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
                 }
             })
             let responseData = {
-                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, email: user?.email, role: user?.role,
-                kmhflCode: user?.facilityKmhflCode, phone: user?.phone
-            }
-            if (user?.role !== "ADMINISTRATOR") {
-                let facility = await db.facility.findFirst({
-                    where: {
-                        ...(user?.facilityKmhflCode) && { kmhflCode: user.facilityKmhflCode }
-                    }
-                })
-                res.statusCode = 200
-                res.json({ data: { ...responseData, facilityName: facility?.name }, status: "success" })
-                return
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, email: user?.email, role: user?.role, phone: user?.phone
             }
             res.statusCode = 200;
             res.json({ data: responseData, status: "success" });;
@@ -123,7 +111,7 @@ router.post("/login", async (req: Request, res: Response) => {
 // Register User
 router.post("/register", async (req: Request, res: Response) => {
     try {
-        let { email, names, role, password, kmhflCode, phone } = req.body;
+        let { email, names, role, password, phone } = req.body;
         if (!validateEmail(email)) {
             res.statusCode = 400;
             res.json({ status: "error", message: "invalid email value provided" });
@@ -138,7 +126,7 @@ router.post("/register", async (req: Request, res: Response) => {
             password = (Math.random()).toString();
         }
         let roles: string[];
-        roles = ["ADMINISTRATOR", "NURSE", "CHW", "FACILITY_ADMINISTRATOR"]
+        roles = ["ADMINISTRATOR", "SYSTEM_ADMINISTRATOR", "USER"]
         if (role && (roles.indexOf(role) < 0)) {
             res.json({ status: "error", message: `Invalid role name *${role}* provided` });
             return
@@ -151,7 +139,7 @@ router.post("/register", async (req: Request, res: Response) => {
         let _password = await bcrypt.hash(password, salt)
         let user = await db.user.create({
             data: {
-                email, names, role: (role), salt: salt, password: _password, facilityKmhflCode: kmhflCode || null, phone
+                email, names, role: (role), salt: salt, password: _password, phone
 
             }
         })
