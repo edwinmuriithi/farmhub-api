@@ -8,8 +8,7 @@ dotenv.config() // Load environment variables
 import Index from './routes/main'
 import Auth from './routes/auth'
 import Users from './routes/users'
-import Reports from './routes/reports'
-import Client from './routes/client'
+// import Reports from './routes/reports'
 
 const app = express();
 const PORT = 8080;
@@ -20,8 +19,7 @@ app.use('/', Index)
 
 app.use('/auth', Auth)
 app.use('/users', Users)
-app.use('/reports', Reports)
-app.use('/client', Client)
+// app.use('/reports', Reports)
 
 
 

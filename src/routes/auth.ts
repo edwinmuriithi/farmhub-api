@@ -117,9 +117,17 @@ router.post("/register", async (req: Request, res: Response) => {
             res.json({ status: "error", message: "invalid email value provided" });
             return;
         }
+        if (!role) {
+            role = "USER"
+        }
         if (!(role)) {
             res.statusCode = 400;
             res.json({ status: "error", message: "invalid role provided" });
+            return;
+        }
+        if (!names) {
+            res.statusCode = 400;
+            res.json({ status: "error", message: "names were not provided" });
             return;
         }
         if (!password) {

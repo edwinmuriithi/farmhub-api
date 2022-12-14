@@ -28,16 +28,13 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                 select: {
                     id: true, names: true, email: true,
                     createdAt: true, updatedAt: true,
-                    role: true, facility: true, facilityKmhflCode: true, disabled: true,
+                    role: true, disabled: true,
                     phone: true
-                },
-                where: {
-                    ...(user?.facilityKmhflCode) && { facilityKmhflCode: user.facilityKmhflCode }
                 }
             })
             res.statusCode = 200;
             users = users.map((user) => {
-                return { ...user, facilityName: user.facility?.name || "" };
+                return { ...user };
             })
             res.json({ status: "success", users })
             return
