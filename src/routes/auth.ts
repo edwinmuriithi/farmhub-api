@@ -2,7 +2,7 @@ import express, { Request, response, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
 import db from '../lib/prisma'
 import * as bcrypt from 'bcrypt'
-import { sendPasswordResetEmail, validateEmail, sendWelcomeEmail } from "../lib/email";
+// import { sendPasswordResetEmail, validateEmail, sendWelcomeEmail } from "../lib/email";
 
 const router = express.Router()
 router.use(express.json())
@@ -45,11 +45,11 @@ router.post("/login", async (req: Request, res: Response) => {
     try {
         let newUser = false
         let { email, password, phone } = req.body;
-        if (!validateEmail(email)) {
-            res.statusCode = 400
-            res.json({ status: "error", message: "Invalid email value provided" })
-            return
-        }
+        // if (!validateEmail(email)) {
+        //     res.statusCode = 400
+        //     res.json({ status: "error", message: "Invalid email value provided" })
+        //     return
+        // }
         if (!password || !phone) {
             res.statusCode = 400;
             res.json({ status: "error", message: "Phone number and password are required to login" });
@@ -170,7 +170,7 @@ router.post("/register", async (req: Request, res: Response) => {
             }
         })
         let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
-        let response = await sendWelcomeEmail(user, resetUrl)
+        // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
         let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
         res.statusCode = 201
@@ -192,17 +192,18 @@ router.post("/register", async (req: Request, res: Response) => {
 // Register
 router.post("/reset-password", async (req: Request, res: Response) => {
     try {
-        let { email, id } = req.body;
-        if (email && !validateEmail(email)) {
-            res.statusCode = 400
-            res.json({ status: "error", message: "invalid email value provided" })
-            return
-        }
+        let { email, id, phone } = req.body;
+        // if (email && !validateEmail(email)) {
+        //     res.statusCode = 400
+        //     res.json({ status: "error", message: "invalid email value provided" })
+        //     return
+        // }
         // Initiate password reset.
         let user = await db.user.findFirst({
             where: {
                 ...(email) && { email },
-                ...(id) && { id }
+                ...(id) && { id },
+                ...(phone) && { phone }
             }
         })
 
@@ -224,7 +225,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
         res.statusCode = 200
         let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
         console.log(resetUrl)
-        let response = await sendPasswordResetEmail(user, resetUrl)
+        // let response = await sendPasswordResetEmail(user, resetUrl)
         // console.log(response)
         res.json({ message: `Password reset instructions have been sent to your email, ${user?.email}`, status: "success", });
         return
