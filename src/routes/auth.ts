@@ -44,20 +44,21 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
     try {
         let newUser = false
-        let { email, password } = req.body;
+        let { email, password, phone } = req.body;
         if (!validateEmail(email)) {
             res.statusCode = 400
-            res.json({ status: "error", message: "invalid email value provided" })
+            res.json({ status: "error", message: "Invalid email value provided" })
             return
         }
-        if (!email && !password && !email) {
+        if (!password || !phone) {
             res.statusCode = 400;
-            res.json({ status: "error", message: "email and password are required to login" });
+            res.json({ status: "error", message: "Phone number and password are required to login" });
             return;
         }
         let user = await db.user.findFirst({
             where: {
-                ...(email) && { email }
+                ...(email) && { email },
+                ...(phone) && { phone }
             }
         })
 
@@ -147,7 +148,7 @@ router.post("/register", async (req: Request, res: Response) => {
         let _password = await bcrypt.hash(password, salt)
         let user = await db.user.create({
             data: {
-                email, names, role: (role), salt: salt, password: _password, phone
+                email, names, role: (role), salt: salt, password: _password, phone, verified: true
 
             }
         })

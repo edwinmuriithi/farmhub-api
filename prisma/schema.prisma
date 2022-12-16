@@ -14,8 +14,8 @@ model User {
   id                  String    @id @default(uuid())
   names               String
   role                ROLE
-  email               String    @unique
-  phone               String?   @unique
+  email               String?   @unique
+  phone               String    @unique
   password            String
   salt                String
   data                Json      @default("{ \"newUser\": true }")
