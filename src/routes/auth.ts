@@ -175,7 +175,7 @@ router.post("/register", async (req: Request, res: Response) => {
         // console.log("Email API Response: ", response)
         let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
         res.statusCode = 201
-        res.json({ user: responseData, status: "success", message: `Password reset instructions have been sent to your phone` })
+        res.json({ user: responseData, status: "success", message: `User registered successfully` })
         return
     } catch (error: any) {
         res.statusCode = 400
