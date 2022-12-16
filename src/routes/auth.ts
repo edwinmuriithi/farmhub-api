@@ -113,22 +113,27 @@ router.post("/login", async (req: Request, res: Response) => {
 router.post("/register", async (req: Request, res: Response) => {
     try {
         let { email, names, role, password, phone } = req.body;
-        if (!validateEmail(email)) {
+        // if (!validateEmail(email)) {
+        //     res.statusCode = 400;
+        //     res.json({ status: "error", message: "invalid email value provided" });
+        //     return;
+        // }
+        if (!(phone)) {
             res.statusCode = 400;
-            res.json({ status: "error", message: "invalid email value provided" });
+            res.json({ status: "error", message: "Phone number is required" });
             return;
         }
         if (!role) {
             role = "USER"
         }
-        if (!(role)) {
-            res.statusCode = 400;
-            res.json({ status: "error", message: "invalid role provided" });
-            return;
-        }
+        // if (!(role)) {
+        //     res.statusCode = 400;
+        //     res.json({ status: "error", message: "Invalid role provided" });
+        //     return;
+        // }
         if (!names) {
             res.statusCode = 400;
-            res.json({ status: "error", message: "names were not provided" });
+            res.json({ status: "error", message: "Names is required" });
             return;
         }
         if (!password) {
@@ -138,10 +143,6 @@ router.post("/register", async (req: Request, res: Response) => {
         roles = ["ADMINISTRATOR", "SYSTEM_ADMINISTRATOR", "USER"]
         if (role && (roles.indexOf(role) < 0)) {
             res.json({ status: "error", message: `Invalid role name *${role}* provided` });
-            return
-        }
-        if (!role) {
-            res.json({ status: "error", message: `Role name is required.` });
             return
         }
         let salt = await bcrypt.genSalt(10)
