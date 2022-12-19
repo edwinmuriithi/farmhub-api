@@ -1,1 +1,1 @@
-docker compose exec mhis-api yarn prisma:studio
+docker compose exec api yarn prisma:studio

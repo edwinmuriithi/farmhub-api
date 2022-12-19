@@ -2,7 +2,7 @@ import express, { Request, response, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
 import db from '../lib/prisma'
 import * as bcrypt from 'bcrypt'
-import { sendPasswordResetEmail, validateEmail, sendWelcomeEmail } from "../lib/email";
+// import { sendPasswordResetEmail, validateEmail, sendWelcomeEmail } from "../lib/email";
 
 const router = express.Router()
 router.use(express.json())
@@ -44,20 +44,21 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
     try {
         let newUser = false
-        let { email, password } = req.body;
-        if (!validateEmail(email)) {
-            res.statusCode = 400
-            res.json({ status: "error", message: "invalid email value provided" })
-            return
-        }
-        if (!email && !password && !email) {
+        let { email, password, phone } = req.body;
+        // if (!validateEmail(email)) {
+        //     res.statusCode = 400
+        //     res.json({ status: "error", message: "Invalid email value provided" })
+        //     return
+        // }
+        if (!password || !phone) {
             res.statusCode = 400;
-            res.json({ status: "error", message: "email and password are required to login" });
+            res.json({ status: "error", message: "Phone number and password are required to login" });
             return;
         }
         let user = await db.user.findFirst({
             where: {
-                ...(email) && { email }
+                ...(email) && { email },
+                ...(phone) && { phone }
             }
         })
 
@@ -85,6 +86,7 @@ router.post("/login", async (req: Request, res: Response) => {
                 newUser = true
                 await db.user.update({
                     where: {
+                        ...(phone) && { phone },
                         ...(email) && { email }
                     },
                     data: {
@@ -112,14 +114,27 @@ router.post("/login", async (req: Request, res: Response) => {
 router.post("/register", async (req: Request, res: Response) => {
     try {
         let { email, names, role, password, phone } = req.body;
-        if (!validateEmail(email)) {
+        // if (!validateEmail(email)) {
+        //     res.statusCode = 400;
+        //     res.json({ status: "error", message: "invalid email value provided" });
+        //     return;
+        // }
+        if (!(phone)) {
             res.statusCode = 400;
-            res.json({ status: "error", message: "invalid email value provided" });
+            res.json({ status: "error", message: "Phone number is required" });
             return;
         }
-        if (!(role)) {
+        if (!role) {
+            role = "USER"
+        }
+        // if (!(role)) {
+        //     res.statusCode = 400;
+        //     res.json({ status: "error", message: "Invalid role provided" });
+        //     return;
+        // }
+        if (!names) {
             res.statusCode = 400;
-            res.json({ status: "error", message: "invalid role provided" });
+            res.json({ status: "error", message: "Names is required" });
             return;
         }
         if (!password) {
@@ -131,15 +146,11 @@ router.post("/register", async (req: Request, res: Response) => {
             res.json({ status: "error", message: `Invalid role name *${role}* provided` });
             return
         }
-        if (!role) {
-            res.json({ status: "error", message: `Role name is required.` });
-            return
-        }
         let salt = await bcrypt.genSalt(10)
         let _password = await bcrypt.hash(password, salt)
         let user = await db.user.create({
             data: {
-                email, names, role: (role), salt: salt, password: _password, phone
+                email, names, role: (role), salt: salt, password: _password, phone, verified: true
 
             }
         })
@@ -160,11 +171,11 @@ router.post("/register", async (req: Request, res: Response) => {
             }
         })
         let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
-        let response = await sendWelcomeEmail(user, resetUrl)
+        // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
         let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
         res.statusCode = 201
-        res.json({ user: responseData, status: "success", message: `Password reset instructions have been sent to your email, ${user?.email}` })
+        res.json({ user: responseData, status: "success", message: `User registered successfully` })
         return
     } catch (error: any) {
         res.statusCode = 400
@@ -182,17 +193,18 @@ router.post("/register", async (req: Request, res: Response) => {
 // Register
 router.post("/reset-password", async (req: Request, res: Response) => {
     try {
-        let { email, id } = req.body;
-        if (email && !validateEmail(email)) {
-            res.statusCode = 400
-            res.json({ status: "error", message: "invalid email value provided" })
-            return
-        }
+        let { email, id, phone } = req.body;
+        // if (email && !validateEmail(email)) {
+        //     res.statusCode = 400
+        //     res.json({ status: "error", message: "invalid email value provided" })
+        //     return
+        // }
         // Initiate password reset.
         let user = await db.user.findFirst({
             where: {
                 ...(email) && { email },
-                ...(id) && { id }
+                ...(id) && { id },
+                ...(phone) && { phone }
             }
         })
 
@@ -214,7 +226,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
         res.statusCode = 200
         let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
         console.log(resetUrl)
-        let response = await sendPasswordResetEmail(user, resetUrl)
+        // let response = await sendPasswordResetEmail(user, resetUrl)
         // console.log(response)
         res.json({ message: `Password reset instructions have been sent to your email, ${user?.email}`, status: "success", });
         return

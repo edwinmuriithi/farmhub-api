@@ -1,1 +1,1 @@
-docker compose -f docker-compose-dev.yml exec -T mhis-api yarn prisma:deploy
+docker compose exec -T api yarn prisma:deploy

@@ -14,8 +14,8 @@ model User {
   id                  String    @id @default(uuid())
   names               String
   role                ROLE
-  email               String    @unique
-  phone               String?   @unique
+  email               String?   @unique
+  phone               String    @unique
   password            String
   salt                String
   data                Json      @default("{ \"newUser\": true }")
@@ -25,6 +25,17 @@ model User {
   updatedAt           DateTime  @updatedAt
   verified            Boolean   @default(false)
   disabled            Boolean   @default(false)
+  Post                Post[]
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  description String
+  image       String
+  userId      String
 }
 
 model Message {
