@@ -65,7 +65,7 @@ router.post("/login", async (req: Request, res: Response) => {
         if (!user) {
             res.statusCode = 401
             res.json({ status: "error", message: "Incorrect username/password or password provided." })
-            return
+            return;
         }
 
         if (user?.verified !== true) {
@@ -146,21 +146,21 @@ router.post("/register", async (req: Request, res: Response) => {
             res.json({ status: "error", message: `Invalid role name *${role}* provided` });
             return
         }
-        let salt = await bcrypt.genSalt(10)
-        let _password = await bcrypt.hash(password, salt)
+        let salt = await bcrypt.genSalt(10);
+        let _password = await bcrypt.hash(password, salt);
         let user = await db.user.create({
             data: {
                 email, names, role: (role), salt: salt, password: _password, phone, verified: true
 
             }
         })
-        console.log(user)
-        let userId = user.id
+        console.log(user);
+        let userId = user.id;
         let session = encodeSession(process.env['SECRET_KEY'] as string, {
             createdAt: ((new Date().getTime() * 10000) + 621355968000000000),
             userId: user?.id as string,
             role: "RESET_TOKEN"
-        })
+        });
         user = await db.user.update({
             where: {
                 id: userId
@@ -169,7 +169,7 @@ router.post("/register", async (req: Request, res: Response) => {
                 resetToken: session.token,
                 resetTokenExpiresAt: new Date(session.expires)
             }
-        })
+        });
         let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
         // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
@@ -181,7 +181,7 @@ router.post("/register", async (req: Request, res: Response) => {
         res.statusCode = 400
         console.error(error)
         if (error.code === 'P2002') {
-            res.json({ status: "error", error: `User with the ${error.meta.target} provided already exists` });
+            res.json({ status: "error", error: `User with the provided ${error.meta.target} already exists` });
             return
         }
         res.json(error)
@@ -295,14 +295,14 @@ router.delete("/:id", async (req: Request, res: Response) => {
             }
         })
         let responseData = user
-        res.statusCode = 201
+        res.statusCode = 201;
         res.json({ user: responseData, status: "success" })
         return
     } catch (error: any) {
-        res.statusCode = 400
+        res.statusCode = 400;
         console.error(error)
         if (error.code === 'P2002') {
-            res.json({ status: "error", error: `User with the ${error.meta.target} provided already exists` });
+            res.json({ status: "error", error: `User with the provided ${error.meta.target} already exists` });
             return
         }
         res.json(error)
