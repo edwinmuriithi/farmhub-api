@@ -64,7 +64,7 @@ router.post("/login", async (req: Request, res: Response) => {
 
         if (!user) {
             res.statusCode = 401
-            res.json({ status: "error", message: "Incorrect username/password or password provided." })
+            res.json({ status: "error", message: "Incorrect phone or password provided." })
             return;
         }
 
@@ -141,7 +141,7 @@ router.post("/register", async (req: Request, res: Response) => {
             password = (Math.random()).toString();
         }
         let roles: string[];
-        roles = ["ADMINISTRATOR", "SYSTEM_ADMINISTRATOR", "USER"]
+        roles = ["ADMINISTRATOR", "SPECIALIST", "USER"]
         if (role && (roles.indexOf(role) < 0)) {
             res.json({ status: "error", message: `Invalid role name *${role}* provided` });
             return
@@ -154,7 +154,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
             }
         })
-        console.log(user);
+        // console.log(user);
         let userId = user.id;
         let session = encodeSession(process.env['SECRET_KEY'] as string, {
             createdAt: ((new Date().getTime() * 10000) + 621355968000000000),
@@ -179,7 +179,7 @@ router.post("/register", async (req: Request, res: Response) => {
         return
     } catch (error: any) {
         res.statusCode = 400
-        console.error(error)
+        console.error(error);
         if (error.code === 'P2002') {
             res.json({ status: "error", error: `User with the provided ${error.meta.target} already exists` });
             return

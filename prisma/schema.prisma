@@ -26,6 +26,8 @@ model User {
   verified            Boolean   @default(false)
   disabled            Boolean   @default(false)
   Post                Post[]
+  outbox              Message[] @relation("sender")
+  inbox               Message[] @relation("recipient")
 }
 
 model Post {
@@ -34,22 +36,26 @@ model Post {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   description String
-  image       String
+  image       String?
   userId      String
+  
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  from      String
-  to        String
-  message   String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  sender      User     @relation("sender", fields: [senderId], references: [id])
+  recipient   User     @relation("recipient", fields: [recipientId], references: [id])
+  text        String
+  image       String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  senderId    String
+  recipientId String
 }
 
 enum ROLE {
   ADMINISTRATOR
-  SYSTEM_ADMINISTRATOR
+  SPECIALIST
   USER
 }

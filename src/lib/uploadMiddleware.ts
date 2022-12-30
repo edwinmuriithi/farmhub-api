@@ -8,7 +8,7 @@ var storage = multer.diskStorage({
         cb(null, `${path.join(__dirname, '../../public/')}`)
     },
     filename: function (req, file, cb) {
-        cb(null,`${ Date.now().toString()}.${mime.extension(file.mimetype)}`) //Appending .jpg
+        cb(null, `${Date.now().toString()}.${mime.extension(file.mimetype)}`) //Appending .jpg
     }
 })
 

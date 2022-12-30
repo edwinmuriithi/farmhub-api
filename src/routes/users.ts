@@ -14,16 +14,11 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
         if (decodedSession.type == 'valid') {
             let role = decodedSession.session.role
             let userId = decodedSession.session.userId
-            if (!(role === 'ADMINISTRATOR' || role === "FACILITY_ADMINISTRATOR")) {
-                res.statusCode = 401
-                res.send({ error: `Insufficient Permissions for ${role}`, status: "error" });
-                return
+            if (!(role === 'ADMINISTRATOR')) {
+                res.statusCode = 401;
+                res.json({ error: `Insufficient Permissions for ${role}`, status: "error" });
+                return;
             }
-            let user = await db.user.findUnique({
-                where: {
-                    id: userId
-                }
-            })
             let users = await db.user.findMany({
                 select: {
                     id: true, names: true, email: true,
@@ -56,7 +51,7 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
         if (decodedSession.type == 'valid') {
             let role = decodedSession.session.role
             let userId = decodedSession.session.userId
-            if (!(role === 'ADMINISTRATOR' || role === "FACILITY_ADMINISTRATOR")) {
+            if (!(role === 'ADMINISTRATOR')) {
                 res.statusCode = 401
                 res.send({ error: `Insufficient Permissions for ${role}`, status: "error" });
                 return
@@ -112,7 +107,6 @@ router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
             where: { id: id },
             data: {
                 ...(role) && { role },
-                ...kmhflCode && { facilityKmhflCode: kmhflCode },
                 ...email && { email },
                 ...names && { names },
                 ...phone && { phone },
