@@ -10,7 +10,7 @@ router.use(express.json())
 router.get("/", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
-        let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
+        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
         if (decodedSession.type == 'valid') {
             let role = decodedSession.session.role
             let userId = decodedSession.session.userId
@@ -47,7 +47,7 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
     try {
         let { id } = req.params
         let token = req.headers.authorization || '';
-        let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
+        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
         if (decodedSession.type == 'valid') {
             let role = decodedSession.session.role
             let userId = decodedSession.session.userId
@@ -86,7 +86,7 @@ router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
         console.log(status)
         let { id } = req.params;
         let token = req.headers.authorization || '';
-        let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
+        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
         if (decodedSession.type == 'valid') {
             let currentRole = decodedSession.session.role;
             let userId = decodedSession.session.userId;
