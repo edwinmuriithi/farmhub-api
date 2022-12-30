@@ -1,6 +1,6 @@
 // import mailjet from 'node-mailjet'
 
-// let maijetClient = mailjet.connect(import.meta.env['MAILJET_API_KEY'] as string, import.meta.env['MAILJET_API_SECRET'] as string)
+// let maijetClient = mailjet.connect(process.env['MAILJET_API_KEY'] as string, process.env['MAILJET_API_SECRET'] as string)
 
 // export async function sendEmail(data: { subject: string, to: { email: string, name: string }, from: { name: string, email: string }, body: string, html: string }) {
 //     let response = await maijetClient.post("send", { 'version': 'v3.1' }).request({

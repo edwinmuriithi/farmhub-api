@@ -4,7 +4,7 @@ import { decodeSession } from "./jwt";
 
 
 
-export let apiHost = import.meta.env.FHIR_BASE_URL
+export let apiHost = process.env.FHIR_BASE_URL
 
 
 
@@ -18,7 +18,7 @@ export let apiHost = import.meta.env.FHIR_BASE_URL
 
 
 export const getUserFromToken = async (token: string) => {
-    let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
+    let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
     if (decodedSession.type == 'valid') {
         // let currentRole = decodedSession.session.role;
         let userId = decodedSession.session.userId;
@@ -28,7 +28,7 @@ export const getUserFromToken = async (token: string) => {
 }
 
 export const getRoleFromToken = async (token: string) => {
-    let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
+    let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
     if (decodedSession.type == 'valid') {
         let currentRole = decodedSession.session.role;
         // let userId = decodedSession.session.userId;

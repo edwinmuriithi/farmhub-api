@@ -27,7 +27,7 @@
 //     try {
 //         let { id } = req.params
 //         let token = req.headers.authorization || '';
-//         let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
+//         let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
 //         if (decodedSession.type == 'valid') {
 //             let role = decodedSession.session.role
 //             let userId = decodedSession.session.userId

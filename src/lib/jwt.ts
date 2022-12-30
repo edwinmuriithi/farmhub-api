@@ -108,7 +108,7 @@ export function requireJWTMiddleware(request: Request, response: Response, next:
         return;
     }
 
-    const decodedSession: DecodeResult = decodeSession(import.meta.env['SECRET_KEY'] as string, header.split(' ')[1]);
+    const decodedSession: DecodeResult = decodeSession(process.env['SECRET_KEY'] as string, header.split(' ')[1]);
     
     if (decodedSession.type === "integrity-error" || decodedSession.type === "invalid-token") {
         unauthorized(`Failed to validate authorization token. Reason: ${decodedSession.type}.`);
@@ -126,7 +126,7 @@ export function requireJWTMiddleware(request: Request, response: Response, next:
 
     if (expiration === "grace") {
         // Automatically renew the session and send it back with the response
-        const { token, expires, issued } = encodeSession(import.meta.env['SECRET_KEY'] as string, decodedSession.session);
+        const { token, expires, issued } = encodeSession(process.env['SECRET_KEY'] as string, decodedSession.session);
         session = {
             ...decodedSession.session,
             expires: expires,
