@@ -16,7 +16,7 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
             res.json({ error: "Invalid access token", status: "error" });
             return
         }
-        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
+        let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(' ')[1])
         if (decodedSession.type == 'valid') {
             let userId = decodedSession.session.userId
             let user = await db.user.findFirst({
@@ -76,7 +76,7 @@ router.post("/login", async (req: Request, res: Response) => {
         }
         const validPassword = await bcrypt.compare(password, user?.password as string);
         if (validPassword) {
-            let session = encodeSession(process.env['SECRET_KEY'] as string, {
+            let session = encodeSession(import.meta.env['SECRET_KEY'] as string, {
                 createdAt: ((new Date().getTime() * 10000) + 621355968000000000),
                 userId: user?.id as string,
                 role: user?.role as string
@@ -156,7 +156,7 @@ router.post("/register", async (req: Request, res: Response) => {
         })
         // console.log(user);
         let userId = user.id;
-        let session = encodeSession(process.env['SECRET_KEY'] as string, {
+        let session = encodeSession(import.meta.env['SECRET_KEY'] as string, {
             createdAt: ((new Date().getTime() * 10000) + 621355968000000000),
             userId: user?.id as string,
             role: "RESET_TOKEN"
@@ -170,7 +170,7 @@ router.post("/register", async (req: Request, res: Response) => {
                 resetTokenExpiresAt: new Date(session.expires)
             }
         });
-        let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
+        let resetUrl = `${import.meta.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
         // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
         let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
@@ -208,7 +208,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
             }
         })
 
-        let session = encodeSession(process.env['SECRET_KEY'] as string, {
+        let session = encodeSession(import.meta.env['SECRET_KEY'] as string, {
             createdAt: ((new Date().getTime() * 10000) + 621355968000000000),
             userId: user?.id as string,
             role: "RESET_TOKEN"
@@ -224,7 +224,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
             }
         })
         res.statusCode = 200
-        let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
+        let resetUrl = `${import.meta.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
         console.log(resetUrl)
         // let response = await sendPasswordResetEmail(user, resetUrl)
         // console.log(response)
@@ -253,7 +253,7 @@ router.post("/new-password", [requireJWT], async (req: Request, res: Response) =
             }
         })
         let token = req.headers.authorization || '';
-        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(" ")[1] as string)
+        let decodedSession = decodeSession(import.meta.env['SECRET_KEY'] as string, token.split(" ")[1] as string)
         if ((decodedSession.type !== 'valid') || !(user?.resetToken) || ((user?.resetTokenExpiresAt as Date) < new Date())
             || (decodedSession.session?.role !== 'RESET_TOKEN')
         ) {

@@ -6,13 +6,13 @@
 // export const sendSMS = async (phone: string, message: string) => {
 //     try {
 //         const client = new Client({
-//             apiKey: process.env['ATK_API_KEY'] || '', // you can get this from the dashboard: https://account.africastalking.com
-//             username: process.env['ATK_USERNAME'] || 'sandbox',
+//             apiKey: import.meta.env['ATK_API_KEY'] || '', // you can get this from the dashboard: https://account.africastalking.com
+//             username: import.meta.env['ATK_USERNAME'] || 'sandbox',
 //         });
 //         const response = await client.sendSms({
 //             to: [phone],
 //             message: message,
-//             from: process.env['ATK_SENDER'] || undefined
+//             from: import.meta.env['ATK_SENDER'] || undefined
 //         })
 //         console.log(response);
 //         return { status: "success", message: response }
