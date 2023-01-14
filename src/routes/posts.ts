@@ -6,7 +6,9 @@ import { getUserFromToken } from "../lib/utils";
 
 
 const router = express.Router();
-router.use(express.json());
+
+
+
 
 // Create a new post.
 router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request, res: Response) => {

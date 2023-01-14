@@ -8,6 +8,9 @@ import upload from "../lib/uploadMiddleware";
 const router = express.Router();
 router.use(express.json());
 
+router.use(express.json({ limit: '25mb' }));
+router.use(express.urlencoded({ limit: '25mb', extended: true }));
+
 
 // Get Threads.
 router.get("/", [requireJWT], async (req: Request, res: Response) => {
@@ -21,7 +24,7 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                     { senderId: user || '' },
                 ]
             },
-            distinct: "recipientId",
+            distinct: ["recipientId", "senderId"],
             select: {
                 senderId: true,
                 image: true,
@@ -30,6 +33,11 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                 text: true,
                 updatedAt: true,
                 recipient: {
+                    select: {
+                        names: true
+                    }
+                },
+                sender: {
                     select: {
                         names: true
                     }
@@ -60,12 +68,8 @@ router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
         let token = req.headers.authorization || '';
         let messages = await db.message.findMany({
             where: {
-                OR: [
-                    { recipientId: recipient },
-                    { senderId: recipient },
-                    { recipientId: await getUserFromToken(token) || '' },
-                    { senderId: await getUserFromToken(token) || '' },
-                ]
+                OR:
+                    [{ recipientId: recipient }, { senderId: recipient }]
             },
             include: {
                 recipient: {
@@ -93,19 +97,32 @@ router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
 
 
 // Send Message
-router.post("/", [requireJWT, <any>upload.fields([{ name: "image" }, { name: "video" }])], async (req: Request, res: Response) => {
+router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request, res: Response) => {
     try {
-        let { recipient, text, phone } = req.body;
-        let { id } = req.params;
+        let recipient = req.body.recipient;
+        let text = req.body.text
+        let phone = req.body.phone
+        if (!text) {
+            res.statusCode = 400;
+            res.json({ status: "error", error: `text are required` });
+            return;
+        }
+        if (!recipient && !phone) {
+            res.statusCode = 400;
+            res.json({ status: "error", error: `phone or recipient is required` });
+            return;
+        }
         let token = req.headers.authorization || '';
         let user = await getUserFromToken(token);
+        console.log(req?.file?.filename)
         let newMessage = await db.message.create({
             data: {
                 text,
+                image: req?.file?.filename || '',
                 sender: { connect: { id: user || '' } },
                 recipient: {
                     connect: {
-                        ...(id) && { id: recipient },
+                        ...(recipient) && { id: recipient },
                         ...(phone) && { phone: phone }
                     }
                 }
@@ -118,7 +135,7 @@ router.post("/", [requireJWT, <any>upload.fields([{ name: "image" }, { name: "vi
         res.statusCode = 400
         console.error(error)
         if (error.code === 'P2002') {
-            res.json({ status: "error", message: `User with the ${error.meta.target} provided already exists` });
+            res.json({ status: "error", error: `User with the ${error.meta.target} provided already exists` });
             return;
         }
         if (error.code === 'P2025') {
