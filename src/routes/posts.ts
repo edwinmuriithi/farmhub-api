@@ -153,13 +153,13 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                 let _posts = posts.map((post: any) => {
                     return {
                         post: {
-                            description: post[0].description,
-                            createdBy: post[0].userId,
-                            image: post[0].image,
-                            imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post[0].image}`,
-                            updatedAt: post[0].updatedAt,
-                            id: post[0].id,
-                            createdAt: post[0].createdAt,
+                            description: post.description,
+                            createdBy: post.userId,
+                            image: post.image,
+                            imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post.image}`,
+                            updatedAt: post.updatedAt,
+                            id: post.id,
+                            createdAt: post.createdAt,
                         }
                     }
                 })
