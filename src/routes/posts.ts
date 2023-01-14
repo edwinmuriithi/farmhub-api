@@ -67,8 +67,15 @@ router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
             res.status(401).json({ error: "Unauthorized", status: "error" });
             return;
         }
-        let posts = await db.post.findMany();
-        console.log(posts)
+        let posts = await db.post.findMany({
+            where: {
+                specialistId: null
+            },
+            orderBy: {
+                updatedAt: 'desc'
+            }
+        });
+        // console.log(posts)
         res.status(200).json({ posts, status: "success" });
         return;
     } catch (error) {
@@ -187,6 +194,14 @@ router.post("/specialist/:id", [requireJWT], async (req: Request, res: Response)
         let post = await db.post.findFirst({
             where: {
                 id: id
+            }
+        })
+        await db.post.update({
+            where: {
+                id: post?.id || ''
+            },
+            data: {
+                specialist: { connect: { id: user.id } }
             }
         })
         let message = await db.message.create({
