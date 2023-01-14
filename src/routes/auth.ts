@@ -138,7 +138,7 @@ router.post("/register", async (req: Request, res: Response) => {
             return;
         }
         if (!password) {
-            password = (Math.random()).toString();
+            password = "password";
         }
         let roles: string[];
         roles = ["ADMINISTRATOR", "SPECIALIST", "USER"]
