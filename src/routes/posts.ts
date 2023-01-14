@@ -169,11 +169,12 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
     }
 });
 
-// Get Posts By User.
-router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
+// Convert Post To Thread.
+router.post("/specialist/:id", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
         let _user = await getUserFromToken(token);
+        let { id } = req.params
         let user = await db.user.findFirst({
             where: {
                 id: _user || ''
@@ -183,9 +184,21 @@ router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
             res.status(401).json({ error: "Unauthorized", status: "error" });
             return;
         }
-        let posts = await db.post.findMany();
-        console.log(posts)
-        res.status(200).json({ posts, status: "success" });
+        let post = await db.post.findFirst({
+            where: {
+                id: id
+            }
+        })
+        let message = await db.message.create({
+            data: {
+                text: post?.description || '',
+                image: post?.image,
+                read: true,
+                sender: { connect: { id: post?.userId } },
+                recipient: { connect: { id: user.id } },
+            }
+        })
+        res.status(200).json({ thread: message.recipientId, status: "success" });
         return;
     } catch (error) {
         // console.log(error)

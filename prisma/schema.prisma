@@ -25,20 +25,22 @@ model User {
   updatedAt           DateTime  @updatedAt
   verified            Boolean   @default(false)
   disabled            Boolean   @default(false)
-  Post                Post[]
   outbox              Message[] @relation("sender")
   inbox               Message[] @relation("recipient")
+  userPosts           Post[]    @relation("user")
+  processedPosts      Post[]    @relation("specialist")
 }
 
 model Post {
-  id          String   @id @default(uuid())
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  description String
-  image       String?
-  userId      String
-  
+  id           String   @id @default(uuid())
+  user         User     @relation("user", fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  description  String
+  image        String?
+  userId       String
+  specialistId String?
+  specialist   User?    @relation("specialist", fields: [specialistId], references: [id])
 }
 
 model Message {
