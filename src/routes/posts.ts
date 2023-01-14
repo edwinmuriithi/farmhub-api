@@ -46,7 +46,7 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
             return;
         }
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         res.statusCode = 400;
         res.json({ status: "error", error: error });
         return;
@@ -114,6 +114,7 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
                         imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post[0].image}`,
                         updatedAt: post[0].updatedAt,
                         createdAt: post[0].createdAt,
+                        id: post[0].id
                     },
                     status: "success"
                 });
@@ -152,12 +153,13 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                 let _posts = posts.map((post: any) => {
                     return {
                         post: {
-                            description: post.description,
-                            createdBy: post.userId,
-                            image: post.image,
-                            imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post.image}`,
-                            updatedAt: post.updatedAt,
-                            createdAt: post.createdAt,
+                            description: post[0].description,
+                            createdBy: post[0].userId,
+                            image: post[0].image,
+                            imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post[0].image}`,
+                            updatedAt: post[0].updatedAt,
+                            id: post[0].id,
+                            createdAt: post[0].createdAt,
                         }
                     }
                 })
@@ -172,7 +174,7 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
 
         }
     } catch (error) {
-        console.log(error);
+        // console.log(error)
         res.statusCode = 400;
         res.json({ status: "error", error: error });
         return;
