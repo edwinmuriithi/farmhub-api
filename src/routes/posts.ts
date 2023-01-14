@@ -53,7 +53,7 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
     }
 });
 
-// Get Posts By User.
+// Get Unprocessed Posts
 router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
@@ -75,8 +75,11 @@ router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
                 updatedAt: 'desc'
             }
         });
+        let _posts = posts.map((post: any) => {
+            return { ...post, image: post.image ? `${req.protocol + "://" + req.get('host') + "/files/" + post.image}` : '' }
+        })
         // console.log(posts)
-        res.status(200).json({ posts, status: "success" });
+        res.status(200).json({ posts: _posts, status: "success" });
         return;
     } catch (error) {
         // console.log(error)
