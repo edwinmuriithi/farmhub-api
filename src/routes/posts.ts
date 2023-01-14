@@ -2,6 +2,7 @@ import express, { Request, response, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
 import db from '../lib/prisma'
 import upload from "../lib/uploadMiddleware";
+import { getUserFromToken } from "../lib/utils";
 
 
 const router = express.Router();
@@ -52,6 +53,32 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
     }
 });
 
+// Get Posts By User.
+router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
+    try {
+        let token = req.headers.authorization || '';
+        let _user = await getUserFromToken(token);
+        let user = await db.user.findFirst({
+            where: {
+                id: _user || ''
+            }
+        })
+        if (user?.role !== "SPECIALIST") {
+            res.status(401).json({ error: "Unauthorized", status: "error" });
+            return;
+        }
+        let posts = await db.post.findMany();
+        console.log(posts)
+        res.status(200).json({ posts, status: "success" });
+        return;
+    } catch (error) {
+        // console.log(error)
+        res.statusCode = 400;
+        res.json({ status: "error", error: error });
+        return;
+    }
+});
+
 // Get Post.
 router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
     try {
@@ -94,6 +121,8 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
     }
 });
 
+
+
 // Get Posts By User.
 router.get("/", [requireJWT], async (req: Request, res: Response) => {
     try {
@@ -106,27 +135,58 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                     id: userId
                 }
             });
-            let post = await db.post.findMany({
+            let posts = await db.post.findMany({
                 where: { userId: userId }
             });
-            if (post.length > 0) {
+            if (posts.length > 0) {
+                let _posts = posts.map((post: any) => {
+                    return {
+                        post: {
+                            description: post[0].description,
+                            createdBy: post[0].userId,
+                            image: post[0].image,
+                            imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post[0].image}`,
+                            updatedAt: post[0].updatedAt,
+                            createdAt: post[0].createdAt,
+                        }
+                    }
+                })
                 res.status(200).json({
-                    post: {
-                        description: post[0].description,
-                        createdBy: post[0].userId,
-                        image: post[0].image,
-                        imageUrl: `${req.protocol + "://" + req.get('host') + "/files/" + post[0].image}`,
-                        updatedAt: post[0].updatedAt,
-                        createdAt: post[0].createdAt,
-                    },
-                    status: "success"
+                    status: "success",
+                    posts: _posts
                 });
                 return;
             }
-            res.status(401).json({ error: "Post not found", status: "error" });
+            res.status(200).json({ posts: [], status: "succcess" });
             return;
 
         }
+    } catch (error) {
+        // console.log(error)
+        res.statusCode = 400;
+        res.json({ status: "error", error: error });
+        return;
+    }
+});
+
+// Get Posts By User.
+router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
+    try {
+        let token = req.headers.authorization || '';
+        let _user = await getUserFromToken(token);
+        let user = await db.user.findFirst({
+            where: {
+                id: _user || ''
+            }
+        })
+        if (user?.role !== "SPECIALIST") {
+            res.status(401).json({ error: "Unauthorized", status: "error" });
+            return;
+        }
+        let posts = await db.post.findMany();
+        console.log(posts)
+        res.status(200).json({ posts, status: "success" });
+        return;
     } catch (error) {
         // console.log(error)
         res.statusCode = 400;
