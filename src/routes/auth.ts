@@ -60,19 +60,19 @@ router.post("/login", async (req: Request, res: Response) => {
                 ...(email) && { email },
                 ...(phone) && { phone }
             }
-        })
+        });
 
         if (!user) {
-            res.statusCode = 401
-            res.json({ status: "error", message: "Incorrect phone or password provided." })
+            res.statusCode = 401;
+            res.json({ status: "error", message: "Incorrect phone or password provided." });
             return;
         }
 
         if (user?.verified !== true) {
             // console.log(user)
-            res.statusCode = 401
-            res.json({ status: "error", message: "Kindly complete password reset or verify your account to proceed. Check reset instructions in your email." })
-            return
+            res.statusCode = 401;
+            res.json({ status: "error", message: "Kindly complete password reset or verify your account to proceed. Check reset instructions in your email." });
+            return;
         }
         const validPassword = await bcrypt.compare(password, user?.password as string);
         if (validPassword) {
@@ -81,7 +81,7 @@ router.post("/login", async (req: Request, res: Response) => {
                 userId: user?.id as string,
                 role: user?.role as string
             })
-            let userData: any = user?.data
+            let userData: any = user?.data;
             if (userData.newUser === true) {
                 newUser = true
                 await db.user.update({

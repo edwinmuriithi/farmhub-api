@@ -4,8 +4,8 @@ import db from '../lib/prisma'
 import upload from "../lib/uploadMiddleware";
 
 
-const router = express.Router()
-router.use(express.json())
+const router = express.Router();
+router.use(express.json());
 
 // Create a new post.
 router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request, res: Response) => {
@@ -22,8 +22,8 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
         let token = req.headers.authorization || '';
         let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
         if (decodedSession.type == 'valid') {
-            let role = decodedSession.session.role
-            let userId = decodedSession.session.userId
+            let role = decodedSession.session.role;
+            let userId = decodedSession.session.userId;
             let user = await db.user.findUnique({
                 where: {
                     id: userId
@@ -136,4 +136,4 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
 });
 
 
-export default router
+export default router;

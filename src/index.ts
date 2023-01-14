@@ -11,6 +11,7 @@ import Auth from './routes/auth'
 import Users from './routes/users'
 import Posts from './routes/posts'
 import Messaging from './routes/messaging'
+import Data from './routes/data'
 
 // import Reports from './routes/reports'
 
@@ -26,6 +27,7 @@ app.use('/auth', Auth)
 app.use('/users', Users)
 app.use('/posts', Posts)
 app.use('/messaging', Messaging)
+app.use('/data', Data)
 
 app.use('/files', express.static(`${path.join(__dirname, '../public/')}`))
 

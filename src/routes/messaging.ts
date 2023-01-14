@@ -1,12 +1,12 @@
 import express, { Request, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
-import db from '../lib/prisma'
-import { getUserFromToken } from '../lib/utils'
+import db from '../lib/prisma';
+import { getUserFromToken } from '../lib/utils';
 import upload from "../lib/uploadMiddleware";
 
 
-const router = express.Router()
-router.use(express.json())
+const router = express.Router();
+router.use(express.json());
 
 
 // Get Threads.
@@ -40,19 +40,19 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
         });
         res.statusCode = 200;
         res.json({ status: "success", threads })
-        return
+        return;
     } catch (error) {
-        console.error(error)
+        console.error(error);
         res.statusCode = 400;
-        res.json(error)
-        return
+        res.json({ status: "error", error });
+        return;
     }
 });
 
 // Get Thread Messages
 router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
     try {
-        let { recipient } = req.params
+        let { recipient } = req.params;
         let token = req.headers.authorization || '';
         let messages = await db.message.findMany({
             where: {
@@ -68,18 +68,18 @@ router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
                     select: { names: true }
                 }, sender: { select: { names: true } }
             }
-        })
-        res.json({ messages: messages, status: "success" })
-        return
+        });
+        res.json({ messages: messages, status: "success" });
+        return;
     } catch (error: any) {
-        res.statusCode = 400
-        console.error(error)
+        res.statusCode = 400;
+        console.error(error);
         if (error.code === 'P2002') {
             res.json({ status: "error", message: `User with the ${error.meta.target} provided not found` });
-            return
+            return;
         }
-        res.json(error)
-        return
+        res.json({ status: "error", error });
+        return;
     }
 });
 
@@ -112,15 +112,15 @@ router.post("/", [requireJWT, <any>upload.fields([{ name: "image" }, { name: "vi
         console.error(error)
         if (error.code === 'P2002') {
             res.json({ status: "error", message: `User with the ${error.meta.target} provided already exists` });
-            return
+            return;
         }
         if (error.code === 'P2025') {
             res.json({ status: "error", message: `Recipient not found` });
-            return
+            return;
         }
         res.json(error);
         return;
     }
 });
 
-export default router
+export default router;

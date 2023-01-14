@@ -53,7 +53,7 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
             let userId = decodedSession.session.userId
             if (!(role === 'ADMINISTRATOR')) {
                 res.statusCode = 401
-                res.send({ error: `Insufficient Permissions for ${role}`, status: "error" });
+                res.json({ error: `Insufficient Permissions for ${role}`, status: "error" });
                 return
             }
         }
@@ -82,8 +82,8 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
 router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
     try {
         let { status, role, kmhflCode, email, names, phone } = req.body;
-        console.log(req.body)
-        console.log(status)
+        console.log(req.body);
+        console.log(status);
         let { id } = req.params;
         let token = req.headers.authorization || '';
         let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
@@ -92,14 +92,14 @@ router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
             let userId = decodedSession.session.userId;
             if (currentRole !== 'ADMINISTRATOR') {
                 res.statusCode = 401;
-                res.send({ error: `Insufficient Permissions for ${currentRole}`, status: "error" });
+                res.json({ error: `Insufficient Permissions for ${currentRole}`, status: "error" });
                 return;
             }
 
             // Only system admin can reassign roles and facilities.
             if ((role || kmhflCode) && currentRole !== "ADMINISTRATOR") {
                 res.statusCode = 401;
-                res.send({ error: `Insufficient Permissions for ${currentRole}`, status: "error" });
+                res.json({ error: `Insufficient Permissions for ${currentRole}`, status: "error" });
                 return;
             }
         }
@@ -112,17 +112,17 @@ router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
                 ...phone && { phone },
                 ...status && { disabled: (status === "disabled") }
             }
-        })
+        });
         let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role }
         res.statusCode = 201;
         res.json({ user: responseData, status: "success" });
         return;
     } catch (error: any) {
-        res.statusCode = 400
-        console.error(error)
+        res.statusCode = 400;
+        console.error(error);
         if (error.code === 'P2002') {
             res.json({ status: "error", message: `User with the ${error.meta.target} provided already exists` });
-            return
+            return;
         }
         res.json(error);
         return;
