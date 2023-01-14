@@ -24,6 +24,7 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
             distinct: "recipientId",
             select: {
                 senderId: true,
+                image: true,
                 recipientId: true,
                 read: true,
                 text: true,
@@ -38,8 +39,11 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                 updatedAt: 'desc'
             }
         });
+        let _threads = threads.map((thread: any) => {
+            return { ...thread, image: thread.image ? `${req.protocol + "://" + req.get('host') + "/files/" + thread.image}` : '' }
+        })
         res.statusCode = 200;
-        res.json({ status: "success", threads })
+        res.json({ status: "success", threads: _threads })
         return;
     } catch (error) {
         console.error(error);
@@ -69,7 +73,10 @@ router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
                 }, sender: { select: { names: true } }
             }
         });
-        res.json({ messages: messages, status: "success" });
+        let _messages = messages.map((message: any) => {
+            return { ...message, image: message.image ? `${req.protocol + "://" + req.get('host') + "/files/" + message.image}` : '' }
+        })
+        res.json({ messages: _messages, status: "success" });
         return;
     } catch (error: any) {
         res.statusCode = 400;
