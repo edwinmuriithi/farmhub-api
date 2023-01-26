@@ -2,7 +2,7 @@ import express, { Request, response, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
 import db from '../lib/prisma'
 import * as bcrypt from 'bcrypt'
-// import { sendPasswordResetEmail, validateEmail, sendWelcomeEmail } from "../lib/email";
+import { generateAndSendResetCode, parsePhoneNumber } from "../lib/sms";
 
 const router = express.Router()
 router.use(express.json())
@@ -25,7 +25,7 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
                 }
             })
             let responseData = {
-                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, email: user?.email, role: user?.role, phone: user?.phone
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone
             }
             res.statusCode = 200;
             res.json({ data: responseData, status: "success" });;
@@ -44,12 +44,8 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
     try {
         let newUser = false
-        let { email, password, phone } = req.body;
-        // if (!validateEmail(email)) {
-        //     res.statusCode = 400
-        //     res.json({ status: "error", message: "Invalid email value provided" })
-        //     return
-        // }
+        let { password, phone } = req.body;
+
         if (!password || !phone) {
             res.statusCode = 400;
             res.json({ status: "error", message: "Phone number and password are required to login" });
@@ -57,8 +53,7 @@ router.post("/login", async (req: Request, res: Response) => {
         }
         let user = await db.user.findFirst({
             where: {
-                ...(email) && { email },
-                ...(phone) && { phone }
+                ...(phone) && { phone: parsePhoneNumber(phone) }
             }
         });
 
@@ -86,15 +81,17 @@ router.post("/login", async (req: Request, res: Response) => {
                 newUser = true
                 await db.user.update({
                     where: {
-                        ...(phone) && { phone },
-                        ...(email) && { email }
+                        ...(phone) && { phone: parsePhoneNumber(phone) },
                     },
                     data: {
                         data: { ...userData, newUser: false }
                     }
                 })
             }
-            res.json({ status: "success", token: session.token, issued: session.issued, expires: session.expires, newUser })
+            let userDetails = {
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone
+            }
+            res.json({ status: "success", token: session.token, issued: session.issued, expires: session.expires, newUser, userDetails })
             return
         } else {
             res.statusCode = 401;
@@ -113,12 +110,7 @@ router.post("/login", async (req: Request, res: Response) => {
 // Register User
 router.post("/register", async (req: Request, res: Response) => {
     try {
-        let { email, names, role, password, phone } = req.body;
-        // if (!validateEmail(email)) {
-        //     res.statusCode = 400;
-        //     res.json({ status: "error", message: "invalid email value provided" });
-        //     return;
-        // }
+        let { names, role, password, phone } = req.body;
         if (!(phone)) {
             res.statusCode = 400;
             res.json({ status: "error", message: "Phone number is required" });
@@ -127,11 +119,6 @@ router.post("/register", async (req: Request, res: Response) => {
         if (!role) {
             role = "USER"
         }
-        // if (!(role)) {
-        //     res.statusCode = 400;
-        //     res.json({ status: "error", message: "Invalid role provided" });
-        //     return;
-        // }
         if (!names) {
             res.statusCode = 400;
             res.json({ status: "error", message: "Names is required" });
@@ -150,7 +137,7 @@ router.post("/register", async (req: Request, res: Response) => {
         let _password = await bcrypt.hash(password, salt);
         let user = await db.user.create({
             data: {
-                email, names, role: (role), salt: salt, password: _password, phone, verified: true
+                names, role: (role), salt: salt, password: _password, phone: parsePhoneNumber(phone) || '', verified: true
 
             }
         })
@@ -170,7 +157,6 @@ router.post("/register", async (req: Request, res: Response) => {
                 resetTokenExpiresAt: new Date(session.expires)
             }
         });
-        let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
         // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
         let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
@@ -193,49 +179,26 @@ router.post("/register", async (req: Request, res: Response) => {
 // Register
 router.post("/reset-password", async (req: Request, res: Response) => {
     try {
-        let { email, id, phone } = req.body;
-        // if (email && !validateEmail(email)) {
-        //     res.statusCode = 400
-        //     res.json({ status: "error", message: "invalid email value provided" })
-        //     return
-        // }
+        let { phone } = req.body;
+        const urlPrefix = `${req.protocol + "://" + req.get('host') + "/r/"}`
         // Initiate password reset.
         let user = await db.user.findFirst({
             where: {
-                ...(email) && { email },
-                ...(id) && { id },
-                ...(phone) && { phone }
+                ...(phone) && { phone: parsePhoneNumber(phone) }
             }
-        })
+        });
 
-        let session = encodeSession(process.env['SECRET_KEY'] as string, {
-            createdAt: ((new Date().getTime() * 10000) + 621355968000000000),
-            userId: user?.id as string,
-            role: "RESET_TOKEN"
-        })
-        user = await db.user.update({
-            where: {
-                ...(email) && { email },
-                ...(id) && { id }
-            },
-            data: {
-                resetToken: session.token,
-                resetTokenExpiresAt: new Date(session.expires)
-            }
-        })
-        res.statusCode = 200
-        let resetUrl = `${process.env['WEB_URL']}/new-password?id=${user?.id}&token=${user?.resetToken}`
-        console.log(resetUrl)
-        // let response = await sendPasswordResetEmail(user, resetUrl)
-        // console.log(response)
-        res.json({ message: `Password reset instructions have been sent to your email, ${user?.email}`, status: "success", });
-        return
+        await generateAndSendResetCode(parsePhoneNumber(phone) || '', urlPrefix)
+
+        res.statusCode = 200;
+        res.json({ message: `A password reset link has been sent to your phone`, status: "success", });
+        return;
 
     } catch (error: any) {
         console.log(error)
         res.statusCode = 401
         if (error.code === 'P2025') {
-            res.json({ error: `Password reset instructions have been sent to your email`, status: "error" });
+            res.json({ error, status: "error" });
             return
         }
         res.json({ error: error, status: "error" });
@@ -258,7 +221,7 @@ router.post("/new-password", [requireJWT], async (req: Request, res: Response) =
             || (decodedSession.session?.role !== 'RESET_TOKEN')
         ) {
             res.statusCode = 401
-            res.json({ error: `Invalid and/or expired password reset token. Code: ${decodedSession.type}`, status: "error" });
+            res.json({ error: `Invalid or expired password reset token: ${decodedSession.type}`, status: "error" });
             return
         }
         let salt = await bcrypt.genSalt(10)
@@ -271,8 +234,7 @@ router.post("/new-password", [requireJWT], async (req: Request, res: Response) =
                 password: _password, salt: salt, resetToken: null, resetTokenExpiresAt: null, verified: true
             }
         })
-        // console.log(response)
-        res.statusCode = 200
+        res.statusCode = 200;
         res.json({ message: "Password Reset Successfully", status: "success" });
         return
     } catch (error) {

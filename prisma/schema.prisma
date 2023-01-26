@@ -29,6 +29,7 @@ model User {
   inbox               Message[] @relation("recipient")
   userPosts           Post[]    @relation("user")
   processedPosts      Post[]    @relation("specialist")
+  SmsAuth             SmsAuth[]
 }
 
 model Post {
@@ -41,6 +42,17 @@ model Post {
   userId       String
   specialistId String?
   specialist   User?    @relation("specialist", fields: [specialistId], references: [id])
+}
+
+model SmsAuth {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  code      String   @unique
+  token     String   @unique
+  expiry    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
 }
 
 model Message {
