@@ -25,31 +25,51 @@ model User {
   updatedAt           DateTime  @updatedAt
   verified            Boolean   @default(false)
   disabled            Boolean   @default(false)
-  Post                Post[]
+  outbox              Message[] @relation("sender")
+  inbox               Message[] @relation("recipient")
+  userPosts           Post[]    @relation("user")
+  processedPosts      Post[]    @relation("specialist")
+  SmsAuth             SmsAuth[]
 }
 
 model Post {
-  id          String   @id @default(uuid())
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  description String
-  image       String
-  userId      String
+  id           String   @id @default(uuid())
+  user         User     @relation("user", fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  description  String
+  image        String?
+  userId       String
+  specialistId String?
+  specialist   User?    @relation("specialist", fields: [specialistId], references: [id])
+}
+
+model SmsAuth {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  code      String   @unique
+  token     String   @unique
+  expiry    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  from      String
-  to        String
-  message   String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  sender      User     @relation("sender", fields: [senderId], references: [id])
+  recipient   User     @relation("recipient", fields: [recipientId], references: [id])
+  text        String
+  image       String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  senderId    String
+  recipientId String
 }
 
 enum ROLE {
   ADMINISTRATOR
-  SYSTEM_ADMINISTRATOR
+  SPECIALIST
   USER
 }
