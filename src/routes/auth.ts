@@ -62,6 +62,11 @@ router.post("/login", async (req: Request, res: Response) => {
             res.json({ status: "error", message: "Incorrect phone or password provided." });
             return;
         }
+        if (user.disabled){
+            res.statusCode = 401;
+            res.json({ status: "error", message: "Your account has been disabled. Contact administrator" });
+            return;
+        }
 
         if (user?.verified !== true) {
             // console.log(user)
