@@ -1,18 +1,27 @@
-import prisma from "./prisma"
+import prisma from "./prisma";
 import { decodeSession } from "./jwt";
 
 
 
 
-export let apiHost = process.env.FHIR_BASE_URL
+export let apiHost = process.env.FHIR_BASE_URL;
+
+export let checkPaymentStatus = async (userId: string) => {
+    try {
+        let user = await prisma.user.findFirst({
+            where: { id: userId }
+        });
+        if (!user) {
+            return false;
+        }
+    
 
 
-
-
-
-
-
-
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
 
 
 

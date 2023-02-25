@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
 import db from '../lib/prisma'
 
-const router = express.Router()
-router.use(express.json())
+const router = express.Router();
+router.use(express.json());
 
 
 // Get User Information.
@@ -12,8 +12,8 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
         let token = req.headers.authorization || '';
         let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
         if (decodedSession.type == 'valid') {
-            let role = decodedSession.session.role
-            let userId = decodedSession.session.userId
+            let role = decodedSession.session.role;
+            let userId = decodedSession.session.userId;
             if (!(role === 'ADMINISTRATOR')) {
                 res.statusCode = 401;
                 res.json({ error: `Insufficient Permissions for ${role}`, status: "error" });
@@ -31,7 +31,7 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
             users = users.map((user) => {
                 return { ...user };
             })
-            res.json({ status: "success", users })
+            res.json({ status: "success", users });
             return
         }
     } catch (error) {

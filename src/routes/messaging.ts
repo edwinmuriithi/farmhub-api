@@ -100,8 +100,8 @@ router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
 router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request, res: Response) => {
     try {
         let recipient = req.body.recipient;
-        let text = req.body.text
-        let phone = req.body.phone
+        let text = req.body.text;
+        let phone = req.body.phone;
         if (!text) {
             res.statusCode = 400;
             res.json({ status: "error", error: `text are required` });
@@ -132,7 +132,7 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
         res.json({ message: newMessage.id, status: "success" });
         return;
     } catch (error: any) {
-        res.statusCode = 400
+        res.statusCode = 400;
         console.error(error)
         if (error.code === 'P2002') {
             res.json({ status: "error", error: `User with the ${error.meta.target} provided already exists` });
