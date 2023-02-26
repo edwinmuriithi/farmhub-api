@@ -87,7 +87,7 @@ router.get("/:id", [requireJWT], async (req: Request, res: Response) => {
 // Modify User Details
 router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
     try {
-        let { status, role, kmhflCode, email, names, phone } = req.body;
+        let { status, role, kmhflCode, email, names, phone, county, subCounty } = req.body;
         console.log(req.body);
         console.log(status);
         let { id } = req.params;
@@ -116,6 +116,8 @@ router.post("/:id", [requireJWT], async (req: Request, res: Response) => {
                 ...email && { email },
                 ...names && { names },
                 ...phone && { phone },
+                ...county && { county },
+                ...subCounty && { subCounty },
                 ...status && { disabled: (status === "disabled") }
             }
         });

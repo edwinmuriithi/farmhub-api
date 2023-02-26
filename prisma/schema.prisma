@@ -16,6 +16,8 @@ model User {
   role                ROLE
   email               String?   @unique
   phone               String    @unique
+  county              String?
+  subCounty          String?
   password            String
   salt                String
   data                Json      @default("{ \"newUser\": true }")

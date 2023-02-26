@@ -62,7 +62,7 @@ router.post("/login", async (req: Request, res: Response) => {
             res.json({ status: "error", message: "Incorrect phone or password provided." });
             return;
         }
-        if (user.disabled){
+        if (user.disabled) {
             res.statusCode = 401;
             res.json({ status: "error", message: "Your account has been disabled. Contact administrator" });
             return;
@@ -115,7 +115,7 @@ router.post("/login", async (req: Request, res: Response) => {
 // Register User
 router.post("/register", async (req: Request, res: Response) => {
     try {
-        let { names, role, password, phone } = req.body;
+        let { names, role, password, phone, county, subCounty } = req.body;
         if (!(phone)) {
             res.statusCode = 400;
             res.json({ status: "error", message: "Phone number is required" });
@@ -142,8 +142,8 @@ router.post("/register", async (req: Request, res: Response) => {
         let _password = await bcrypt.hash(password, salt);
         let user = await db.user.create({
             data: {
-                names, role: (role), salt: salt, password: _password, phone: parsePhoneNumber(phone) || '', verified: true
-
+                names, role: (role), salt: salt, password: _password, phone: parsePhoneNumber(phone) || '', verified: true,
+                county, subCounty
             }
         })
         // console.log(user);
