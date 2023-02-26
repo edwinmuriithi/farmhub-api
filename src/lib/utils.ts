@@ -2,8 +2,6 @@ import prisma from "./prisma";
 import { decodeSession } from "./jwt";
 
 
-
-
 export let apiHost = process.env.FHIR_BASE_URL;
 
 export let checkPaymentStatus = async (userId: string) => {
@@ -14,7 +12,7 @@ export let checkPaymentStatus = async (userId: string) => {
         if (!user) {
             return false;
         }
-    
+
 
 
     } catch (error) {
@@ -27,7 +25,7 @@ export let checkPaymentStatus = async (userId: string) => {
 
 
 export const getUserFromToken = async (token: string) => {
-    let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
+    let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token)
     if (decodedSession.type == 'valid') {
         // let currentRole = decodedSession.session.role;
         let userId = decodedSession.session.userId;
@@ -37,7 +35,7 @@ export const getUserFromToken = async (token: string) => {
 }
 
 export const getRoleFromToken = async (token: string) => {
-    let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
+    let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token)
     if (decodedSession.type == 'valid') {
         let currentRole = decodedSession.session.role;
         // let userId = decodedSession.session.userId;

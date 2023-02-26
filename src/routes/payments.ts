@@ -16,11 +16,11 @@ router.post("/", [requireJWT, <any>upload.single("video")], async (req: Request,
                 return;
             }
         });
-        if (!req.file?.filename) {
+        if (!req.file?.filename) { 
             res.status(400).json({ error: 'video is required', status: "error" });
             return;
         }
-        // console.log(req.files)
+          // console.log(req.files)
         // if (req.files?.length && req.files?.length < 2) {
         //     res.status(400).json({ error: 'Image/thumbnail and video are required', status: "error" });
         //     return;

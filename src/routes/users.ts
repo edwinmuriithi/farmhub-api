@@ -1,44 +1,50 @@
 import express, { Request, Response } from "express";
 import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from "../lib/jwt";
 import db from '../lib/prisma'
+import { parsePhoneNumber } from "../lib/sms";
+import { getRoleFromToken, getUserFromToken } from "../lib/utils";
 
 const router = express.Router();
 router.use(express.json());
 
 
-// Get User Information.
+// Get Users.
 router.get("/", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
-        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
-        if (decodedSession.type == 'valid') {
-            let role = decodedSession.session.role;
-            let userId = decodedSession.session.userId;
-            if (!(role === 'ADMINISTRATOR')) {
-                res.statusCode = 401;
-                res.json({ error: `Insufficient Permissions for ${role}`, status: "error" });
-                return;
-            }
-            let users = await db.user.findMany({
-                select: {
-                    id: true, names: true, email: true,
-                    createdAt: true, updatedAt: true,
-                    role: true, disabled: true,
-                    phone: true
-                }
-            })
-            res.statusCode = 200;
-            users = users.map((user) => {
-                return { ...user };
-            })
-            res.json({ status: "success", users });
-            return
+        let { phone } = req.query;
+        console.log(phone)
+        token = token.split(' ')[1];
+        let role = await getRoleFromToken(token);
+        let userId = await getUserFromToken(token);
+        if (!(role === 'ADMINISTRATOR')) {
+            res.statusCode = 401;
+            res.json({ error: `Insufficient Permissions for ${role}`, status: "error" });
+            return;
         }
+        let users = await db.user.findMany({
+            select: {
+                id: true, names: true,
+                createdAt: true, updatedAt: true,
+                role: true, disabled: true,
+                phone: true
+            },
+            where: {
+                ...(phone) && { phone: parsePhoneNumber(String(phone)) || '' }
+            }
+        })
+        res.statusCode = 200;
+        users = users.map((user) => {
+            return { ...user };
+        })
+        res.json({ status: "success", users });
+        return;
+        // }
     } catch (error) {
-        console.error(error)
-        res.statusCode = 400
-        res.json(error)
-        return
+        console.error(error);
+        res.statusCode = 400;
+        res.json(error);
+        return;
     }
 });
 
