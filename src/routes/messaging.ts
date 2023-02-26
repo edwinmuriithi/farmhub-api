@@ -16,6 +16,7 @@ router.use(express.urlencoded({ limit: '25mb', extended: true }));
 router.get("/", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
+        token = token.split(' ')[1];
         let user = await getUserFromToken(token);
         let threads = await db.message.findMany({
             where: {
@@ -66,6 +67,7 @@ router.get("/:recipient", [requireJWT], async (req: Request, res: Response) => {
     try {
         let { recipient } = req.params;
         let token = req.headers.authorization || '';
+        token = token.split(' ')[1];
         let messages = await db.message.findMany({
             where: {
                 OR:
@@ -113,6 +115,7 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
             return;
         }
         let token = req.headers.authorization || '';
+        token = token.split(' ')[1];
         let user = await getUserFromToken(token);
         console.log(req?.file?.filename)
         let newMessage = await db.message.create({
