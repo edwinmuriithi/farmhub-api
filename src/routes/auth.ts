@@ -25,9 +25,13 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
                     id: userId
                 }
             })
+            let paymentStatus = await getPaymentStatus(userId)
             let responseData = {
                 id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
-                ...(user?.role === 'USER') && { paidUser: await getPaymentStatus(userId) }
+                ...(user?.role === 'USER') && {
+                    paidUser: (!paymentStatus) ? "Not Paid" : "Paid",
+                    ...(paymentStatus) && { lastPayment: paymentStatus.updatedAt, nextPayment: new Date(new Date(paymentStatus.updatedAt).setDate(new Date(paymentStatus.updatedAt).getDate() + 30)).toISOString() }
+                }
             }
             res.statusCode = 200;
             res.json({ data: responseData, status: "success" });;
