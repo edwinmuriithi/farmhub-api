@@ -95,9 +95,13 @@ router.post("/login", async (req: Request, res: Response) => {
                     }
                 })
             }
+            let paymentStatus = await getPaymentStatus(user?.id)
             let userDetails = {
                 id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
-                ...(user?.role === 'USER') && { paidUser: await getPaymentStatus(user?.id) }
+                ...(user?.role === 'USER') && {
+                    paidUser: (!paymentStatus) ? "Not Paid" : "Paid",
+                    ...(paymentStatus) && { lastPayment: paymentStatus.updatedAt, nextPayment: new Date(new Date(paymentStatus.updatedAt).setDate(new Date(paymentStatus.updatedAt).getDate() + 30)).toISOString() }
+                }
             }
             res.json({ status: "success", token: session.token, issued: session.issued, expires: session.expires, newUser, userDetails })
             return

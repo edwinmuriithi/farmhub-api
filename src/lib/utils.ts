@@ -65,7 +65,7 @@ export const getPaymentStatus = async (userId: string) => {
         if (days > 30) {
             return false;
         }
-        return days;
+        return payments[0];
     } catch (error) {
         console.log(error);
         return false;
