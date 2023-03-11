@@ -3,6 +3,7 @@ import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from
 import db from '../lib/prisma'
 import * as bcrypt from 'bcrypt'
 import { generateAndSendResetCode, parsePhoneNumber } from "../lib/sms";
+import { getPaymentStatus } from "../lib/utils";
 
 const router = express.Router()
 router.use(express.json())
@@ -16,7 +17,7 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
             res.json({ error: "Invalid access token", status: "error" });
             return
         }
-        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
+        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1]);
         if (decodedSession.type == 'valid') {
             let userId = decodedSession.session.userId
             let user = await db.user.findFirst({
@@ -25,7 +26,8 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
                 }
             })
             let responseData = {
-                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
+                ...(user?.role === 'USER') && { paidUser: await getPaymentStatus(userId) }
             }
             res.statusCode = 200;
             res.json({ data: responseData, status: "success" });;
@@ -94,7 +96,8 @@ router.post("/login", async (req: Request, res: Response) => {
                 })
             }
             let userDetails = {
-                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
+                ...(user?.role === 'USER') && { paidUser: await getPaymentStatus(user?.id) }
             }
             res.json({ status: "success", token: session.token, issued: session.issued, expires: session.expires, newUser, userDetails })
             return

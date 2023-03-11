@@ -27,7 +27,7 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
                 id: true, names: true,
                 createdAt: true, updatedAt: true,
                 role: true, disabled: true,
-                phone: true
+                phone: true, county: true, subCounty:true
             },
             where: {
                 ...(phone) && { phone: parsePhoneNumber(String(phone)) || '' }

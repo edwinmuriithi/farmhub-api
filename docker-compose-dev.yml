@@ -1,0 +1,34 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres
+    restart: always
+    ports:
+      - '5432:5432'
+    networks:
+      - postgres
+    env_file:
+      - .env
+    volumes:
+      - 'db:/var/lib/postgresql/data'
+
+  api:
+    build: .
+    container_name: api
+    restart: always
+    networks:
+      - postgres
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    volumes:
+      - ./public:/usr/farmhub/public
+
+volumes:
+  db:
+networks:
+  postgres:
