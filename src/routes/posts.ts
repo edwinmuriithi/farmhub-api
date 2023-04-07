@@ -59,12 +59,14 @@ router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request,
 router.get("/specialist", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
+        token = token.split(' ')[1];
         let _user = await getUserFromToken(token);
         let user = await db.user.findFirst({
             where: {
                 id: _user || ''
             }
         })
+        console.log(user?.role)
         if (user?.role !== "SPECIALIST") {
             res.status(401).json({ error: "Unauthorized", status: "error" });
             return;
@@ -187,6 +189,7 @@ router.get("/", [requireJWT], async (req: Request, res: Response) => {
 router.post("/specialist/:id", [requireJWT], async (req: Request, res: Response) => {
     try {
         let token = req.headers.authorization || '';
+        token = token.split(' ')[1];
         let _user = await getUserFromToken(token);
         let { id } = req.params
         let user = await db.user.findFirst({

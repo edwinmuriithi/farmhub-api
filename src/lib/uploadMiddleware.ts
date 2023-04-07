@@ -9,13 +9,13 @@ var storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         cb(null, `${Date.now().toString()}.${mime.extension(file.mimetype)}`) //Appending .jpg
-    }
+    },
 })
 
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 4 * 1024 * 1024,
+        fileSize: 4 * 1024 * 1024 * 1024,
     }
 });
 

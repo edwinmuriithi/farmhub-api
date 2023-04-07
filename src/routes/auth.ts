@@ -3,6 +3,7 @@ import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from
 import db from '../lib/prisma'
 import * as bcrypt from 'bcrypt'
 import { generateAndSendResetCode, parsePhoneNumber } from "../lib/sms";
+import { getPaymentStatus } from "../lib/utils";
 
 const router = express.Router()
 router.use(express.json())
@@ -16,7 +17,7 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
             res.json({ error: "Invalid access token", status: "error" });
             return
         }
-        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1])
+        let decodedSession = decodeSession(process.env['SECRET_KEY'] as string, token.split(' ')[1]);
         if (decodedSession.type == 'valid') {
             let userId = decodedSession.session.userId
             let user = await db.user.findFirst({
@@ -24,8 +25,14 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
                     id: userId
                 }
             })
+            let paymentStatus = await getPaymentStatus(userId)
             let responseData = {
-                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
+                county: user?.county, subCounty: user?.subCounty,
+                ...(user?.role === 'USER') && {
+                    paidUser: (!paymentStatus) ? "Not Paid" : "Paid",
+                    ...(paymentStatus) && { lastPayment: paymentStatus.updatedAt, nextPayment: new Date(new Date(paymentStatus.updatedAt).setDate(new Date(paymentStatus.updatedAt).getDate() + 30)).toISOString() }
+                }
             }
             res.statusCode = 200;
             res.json({ data: responseData, status: "success" });;
@@ -62,6 +69,11 @@ router.post("/login", async (req: Request, res: Response) => {
             res.json({ status: "error", message: "Incorrect phone or password provided." });
             return;
         }
+        if (user.disabled) {
+            res.statusCode = 401;
+            res.json({ status: "error", message: "Your account has been disabled. Contact administrator" });
+            return;
+        }
 
         if (user?.verified !== true) {
             // console.log(user)
@@ -88,8 +100,14 @@ router.post("/login", async (req: Request, res: Response) => {
                     }
                 })
             }
+            let paymentStatus = await getPaymentStatus(user?.id)
             let userDetails = {
-                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone
+                id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
+                county: user.county, subCounty: user.subCounty,
+                ...(user?.role === 'USER') && {
+                    paidUser: (!paymentStatus) ? "Not Paid" : "Paid",
+                    ...(paymentStatus) && { lastPayment: paymentStatus.updatedAt, nextPayment: new Date(new Date(paymentStatus.updatedAt).setDate(new Date(paymentStatus.updatedAt).getDate() + 30)).toISOString() }
+                }
             }
             res.json({ status: "success", token: session.token, issued: session.issued, expires: session.expires, newUser, userDetails })
             return
@@ -110,7 +128,7 @@ router.post("/login", async (req: Request, res: Response) => {
 // Register User
 router.post("/register", async (req: Request, res: Response) => {
     try {
-        let { names, role, password, phone } = req.body;
+        let { names, role, password, phone, county, subCounty } = req.body;
         if (!(phone)) {
             res.statusCode = 400;
             res.json({ status: "error", message: "Phone number is required" });
@@ -137,8 +155,8 @@ router.post("/register", async (req: Request, res: Response) => {
         let _password = await bcrypt.hash(password, salt);
         let user = await db.user.create({
             data: {
-                names, role: (role), salt: salt, password: _password, phone: parsePhoneNumber(phone) || '', verified: true
-
+                names, role: (role), salt: salt, password: _password, phone: parsePhoneNumber(phone) || '', verified: true,
+                county, subCounty
             }
         })
         // console.log(user);
@@ -159,7 +177,10 @@ router.post("/register", async (req: Request, res: Response) => {
         });
         // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
-        let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
+        let responseData = {
+            id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names,
+            email: user.email, role: user.role, phone: user.phone, county: user.county, subCounty: user.subCounty
+        }
         res.statusCode = 201
         res.json({ user: responseData, status: "success", message: `User registered successfully` })
         return

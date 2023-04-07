@@ -13,6 +13,9 @@ import Posts from './routes/posts'
 import Messaging from './routes/messaging'
 import Data from './routes/data'
 import Reset from './routes/reset'
+import Media from './routes/media'
+import Payments from './routes/payments'
+
 
 // import Reports from './routes/reports'
 
@@ -30,6 +33,9 @@ app.use('/posts', Posts)
 app.use('/messaging', Messaging)
 app.use('/data', Data)
 app.use('/r', Reset)
+app.use('/media', Media)
+app.use('/payments', Payments)
+
 
 app.use('/files', express.static(`${path.join(__dirname, '../public/')}`))
 

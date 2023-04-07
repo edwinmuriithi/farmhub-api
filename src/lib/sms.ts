@@ -63,8 +63,9 @@ export const generateAndSendResetCode = async (phone: string, urlPrefix: string)
         });
 
         let resetUrl = `${urlPrefix + code}`
+        console.log(resetUrl)
         let otpMessage = `Hello ${(user.names).split(" ")[0]},\nWelcome to FarmHub\n\nUse the link below to reset your password.\n${resetUrl}`
-        let smsResponse = await sendSMS(parsePhoneNumber(phone) || '', otpMessage);
+        // let smsResponse = await sendSMS(parsePhoneNumber(phone) || '', otpMessage);
         return code
     } catch (error) {
         console.log(error);
