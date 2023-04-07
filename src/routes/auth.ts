@@ -28,6 +28,7 @@ router.get("/me", [requireJWT], async (req: Request, res: Response) => {
             let paymentStatus = await getPaymentStatus(userId)
             let responseData = {
                 id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
+                county: user?.county, subCounty: user?.subCounty,
                 ...(user?.role === 'USER') && {
                     paidUser: (!paymentStatus) ? "Not Paid" : "Paid",
                     ...(paymentStatus) && { lastPayment: paymentStatus.updatedAt, nextPayment: new Date(new Date(paymentStatus.updatedAt).setDate(new Date(paymentStatus.updatedAt).getDate() + 30)).toISOString() }
@@ -102,6 +103,7 @@ router.post("/login", async (req: Request, res: Response) => {
             let paymentStatus = await getPaymentStatus(user?.id)
             let userDetails = {
                 id: user?.id, createdAt: user?.createdAt, updatedAt: user?.updatedAt, names: user?.names, role: user?.role, phone: user?.phone,
+                county: user.county, subCounty: user.subCounty,
                 ...(user?.role === 'USER') && {
                     paidUser: (!paymentStatus) ? "Not Paid" : "Paid",
                     ...(paymentStatus) && { lastPayment: paymentStatus.updatedAt, nextPayment: new Date(new Date(paymentStatus.updatedAt).setDate(new Date(paymentStatus.updatedAt).getDate() + 30)).toISOString() }
@@ -175,7 +177,10 @@ router.post("/register", async (req: Request, res: Response) => {
         });
         // let response = await sendWelcomeEmail(user, resetUrl)
         // console.log("Email API Response: ", response)
-        let responseData = { id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names, email: user.email, role: user.role, phone: user.phone }
+        let responseData = {
+            id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt, names: user.names,
+            email: user.email, role: user.role, phone: user.phone, county: user.county, subCounty: user.subCounty
+        }
         res.statusCode = 201
         res.json({ user: responseData, status: "success", message: `User registered successfully` })
         return
