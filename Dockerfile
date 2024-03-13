@@ -1,7 +1,7 @@
-FROM node:alpine
+FROM node:16-alpine3.16
 WORKDIR /usr/farmhub
 COPY package.json .
-RUN npm install typescript yarn prisma -g --force
+RUN npm install typescript yarn -g --force
 RUN yarn install
 COPY . .
 RUN yarn prisma:generate
