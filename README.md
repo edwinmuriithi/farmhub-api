@@ -1,7 +1,4 @@
 
-
-
-
 #### Development Mode
 
 `yarn dev`
@@ -18,7 +15,7 @@ Run the production build.
 `yarn start`
 
 
-#### Using Docker
+#### In production Using Docker
 
 `docker-compose up -d --build`
 
