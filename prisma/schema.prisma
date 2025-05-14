@@ -42,6 +42,7 @@ model Post {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   description  String
+  company      String?
   image        String?
   userId       String
   specialistId String?
@@ -75,6 +76,7 @@ model Message {
 model Media {
   id          String   @id @default(uuid())
   title       String
+  company     String?
   description String
   video       String?
   thumbnail   String?

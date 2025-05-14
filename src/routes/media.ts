@@ -3,6 +3,7 @@ import { requireJWTMiddleware as requireJWT, encodeSession, decodeSession } from
 import db from '../lib/prisma'
 import upload from "../lib/uploadMiddleware";
 import { getUserFromToken } from "../lib/utils";
+import { compareSync } from "bcrypt";
 
 const router = express.Router();
 
@@ -39,6 +40,7 @@ router.post("/", [requireJWT, <any>upload.single("video")], async (req: Request,
                 data: {
                     description: req.body.description,
                     thumbnail: "",
+                    company: req.body?.company ?? "",
                     title: req.body.title,
                     video: req.file?.filename,
                     uploadedBy: { connect: { id: userId } }
