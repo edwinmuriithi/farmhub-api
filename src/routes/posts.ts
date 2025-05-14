@@ -4,11 +4,7 @@ import db from '../lib/prisma'
 import upload from "../lib/uploadMiddleware";
 import { getUserFromToken } from "../lib/utils";
 
-
 const router = express.Router();
-
-
-
 
 // Create a new post.
 router.post("/", [requireJWT, <any>upload.single("image")], async (req: Request, res: Response) => {

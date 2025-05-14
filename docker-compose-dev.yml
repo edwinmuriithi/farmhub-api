@@ -11,10 +11,11 @@ services:
     env_file:
       - .env
     volumes:
-      - 'db:/var/lib/postgresql/data'
+      - 'dev-db:/var/lib/postgresql/data'
 
   api:
     build: .
+    dockerfile: Dockerfile.dev
     container_name: api
     restart: always
     networks:
@@ -22,13 +23,13 @@ services:
     depends_on:
       - postgres
     ports:
-      - '8080:8080'
+      - '8087:8080'
     env_file:
       - .env
     volumes:
       - ./public:/usr/farmhub/public
 
 volumes:
-  db:
+  dev-db:
 networks:
   postgres:
