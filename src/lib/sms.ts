@@ -45,7 +45,7 @@ export const generateAndSendResetCode = async (phone: string, urlPrefix: string)
 
         user = await db.user.update({
             where: {
-                ...(phone) && { phone: parsePhoneNumber(phone) || '' }
+                id: user.id
             },
             data: {
                 resetToken: session.token,
